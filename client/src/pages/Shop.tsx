@@ -8,11 +8,13 @@ import { Button } from '../components/ui/Button';
 export function Shop() {
   const [searchParams] = useSearchParams();
   const categoryParam = searchParams.get('category');
+  const dealsParam = searchParams.get('deals');
   const [showFilters, setShowFilters] = useState(false);
   const [selectedBrands, setSelectedBrands] = useState<string[]>([]);
   const [priceRange, setPriceRange] = useState<[number, number]>([0, 5000]);
   // Filter products based on URL params and local state
   const filteredProducts = mockProducts.filter((p) => {
+    if (dealsParam === 'true' && !p.discountPrice) return false;
     if (
     categoryParam &&
     p.category.toLowerCase() !== categoryParam.toLowerCase())
@@ -35,7 +37,7 @@ export function Shop() {
       {/* Header */}
       <div className="mb-8">
         <h1 className="text-4xl font-bold text-primary mb-4 capitalize">
-          {categoryParam ? `${categoryParam}` : 'All Products'}
+          {dealsParam === 'true' ? 'Best Deals' : categoryParam ? `${categoryParam}` : 'All Products'}
         </h1>
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
           <p className="text-body">Showing {filteredProducts.length} results</p>

@@ -14,7 +14,7 @@ export function BestDeals() {
           <p className="text-body">Unbeatable prices on premium tech.</p>
         </div>
         <Link
-          to="/shop"
+          to="/shop?deals=true"
           className="hidden sm:flex items-center text-accent-gold hover:text-accent-goldHover font-medium transition-colors">
 
           View All Deals <ArrowRight className="w-4 h-4 ml-1" />

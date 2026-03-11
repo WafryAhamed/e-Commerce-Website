@@ -21,7 +21,7 @@ export function Home() {
   filter((p) => p.category === 'Laptops' && p.featured).
   slice(0, 4);
   const featuredAccessories = mockProducts.
-  filter((p) => p.category === 'Accessories' && p.featured).
+  filter((p) => p.category === 'Accessories').
   slice(0, 4);
   const containerVariants = {
     hidden: {
