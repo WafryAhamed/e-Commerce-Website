@@ -1,9 +1,11 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { Filter, ChevronDown, Check } from 'lucide-react';
+import type { Product } from '../types';
 import { ProductCard } from '../components/ProductCard';
-import { mockProducts } from '../data/mock';
+import { getErrorMessage } from '../lib/api';
+import { fetchProducts } from '../lib/products';
 import { Button } from '../components/ui/Button';
 
 type SortOption =
@@ -18,12 +20,41 @@ export function Shop() {
   const categoryParam = searchParams.get('category');
   const dealsParam = searchParams.get('deals');
 
+  const [products, setProducts] = useState<Product[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
   const [showFilters, setShowFilters] = useState(false);
   const [selectedBrands, setSelectedBrands] = useState<string[]>([]);
   const [priceRange, setPriceRange] = useState<[number, number]>([0, 5000]);
   const [sortBy, setSortBy] = useState<SortOption>('featured');
 
-  const brands = Array.from(new Set(mockProducts.map((p) => p.brand)));
+  useEffect(() => {
+    let isCancelled = false;
+    setIsLoading(true);
+
+    fetchProducts()
+      .then((response) => {
+        if (!isCancelled) {
+          setProducts(response);
+        }
+      })
+      .catch((error) => {
+        if (!isCancelled) {
+          setProducts([]);
+          console.error(getErrorMessage(error));
+        }
+      })
+      .finally(() => {
+        if (!isCancelled) {
+          setIsLoading(false);
+        }
+      });
+
+    return () => {
+      isCancelled = true;
+    };
+  }, []);
+
+  const brands = Array.from(new Set(products.map((p) => p.brand))).filter(Boolean);
 
   const toggleBrand = (brand: string) => {
     setSelectedBrands((prev) =>
@@ -34,7 +65,7 @@ export function Shop() {
   };
 
   const filteredProducts = useMemo(() => {
-    const result = mockProducts.filter((p) => {
+    const result = products.filter((p) => {
       if (dealsParam === 'true' && !p.discountPrice) return false;
 
       if (
@@ -79,7 +110,7 @@ export function Shop() {
       default:
         return sorted.sort((a, b) => Number(b.featured) - Number(a.featured));
     }
-  }, [categoryParam, dealsParam, priceRange, selectedBrands, sortBy]);
+  }, [categoryParam, dealsParam, priceRange, products, selectedBrands, sortBy]);
 
   const clearFilters = () => {
     setSelectedBrands([]);
@@ -251,7 +282,11 @@ export function Shop() {
         </motion.aside>
 
         <div className="flex-1">
-          {filteredProducts.length > 0 ? (
+          {isLoading ? (
+            <div className="text-center py-20 bg-surface border border-subtle/30 rounded-xl">
+              <p className="text-body">Loading products...</p>
+            </div>
+          ) : filteredProducts.length > 0 ? (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
               {filteredProducts.map((product) => (
                 <ProductCard key={product.id} product={product} />

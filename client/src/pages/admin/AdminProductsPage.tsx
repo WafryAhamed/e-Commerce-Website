@@ -1,22 +1,57 @@
-import { useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Plus, Search, Edit, Trash2, Filter } from 'lucide-react';
 import { motion } from 'framer-motion';
-import { mockProducts } from '../../data/mock';
+import type { Product } from '../../types';
+import { getErrorMessage } from '../../lib/api';
+import { fetchProducts } from '../../lib/products';
 import { Button } from '../../components/ui/Button';
 import { Badge } from '../../components/ui/Badge';
 import { Card } from '../../components/ui/Card';
 export function AdminProductsPage() {
+  const [products, setProducts] = useState<Product[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
-  const filteredProducts = mockProducts.filter(
-    (p) =>
-    p.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    p.brand.toLowerCase().includes(searchTerm.toLowerCase())
+
+  useEffect(() => {
+    let isCancelled = false;
+    setIsLoading(true);
+
+    fetchProducts()
+      .then((response) => {
+        if (!isCancelled) {
+          setProducts(response);
+        }
+      })
+      .catch((error) => {
+        if (!isCancelled) {
+          setProducts([]);
+          console.error(getErrorMessage(error));
+        }
+      })
+      .finally(() => {
+        if (!isCancelled) {
+          setIsLoading(false);
+        }
+      });
+
+    return () => {
+      isCancelled = true;
+    };
+  }, []);
+
+  const filteredProducts = useMemo(
+    () =>
+      products.filter(
+        (p) =>
+          p.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          p.brand.toLowerCase().includes(searchTerm.toLowerCase())
+      ),
+    [products, searchTerm]
   );
-  const totalProducts = mockProducts.length;
-  const lowStock = mockProducts.filter(
-    (p) => p.stock > 0 && p.stock < 10
-  ).length;
-  const outOfStock = mockProducts.filter((p) => p.stock === 0).length;
+
+  const totalProducts = products.length;
+  const lowStock = products.filter((p) => p.stock > 0 && p.stock < 10).length;
+  const outOfStock = products.filter((p) => p.stock === 0).length;
   const inStock = totalProducts - outOfStock;
   return (
     <div className="space-y-8">
@@ -110,7 +145,7 @@ export function AdminProductsPage() {
               </tr>
             </thead>
             <tbody className="divide-y divide-subtle/20">
-              {filteredProducts.map((product) =>
+              {!isLoading && filteredProducts.map((product) =>
               <motion.tr
                 initial={{
                   opacity: 0
@@ -131,7 +166,7 @@ export function AdminProductsPage() {
                     <div className="flex items-center gap-3">
                       <div className="w-10 h-10 rounded bg-background border border-subtle/30 overflow-hidden flex-shrink-0">
                         <img
-                        src={product.images[0]}
+                        src={product.images[0] ?? ''}
                         alt={product.name}
                         className="w-full h-full object-cover" />
 
@@ -199,9 +234,14 @@ export function AdminProductsPage() {
             </tbody>
           </table>
         </div>
-        {filteredProducts.length === 0 &&
+        {!isLoading && filteredProducts.length === 0 &&
         <div className="p-8 text-center text-muted">
             No products found matching your search.
+          </div>
+        }
+        {isLoading &&
+        <div className="p-8 text-center text-muted">
+            Loading products...
           </div>
         }
         <div className="p-4 border-t border-subtle/30 flex items-center justify-between text-sm text-muted">

@@ -1,17 +1,48 @@
+import { useEffect, useState } from 'react';
 import { useSearchParams, Link } from 'react-router-dom';
 import { Search } from 'lucide-react';
-import { mockProducts } from '../data/mock';
+import type { Product } from '../types';
 import { ProductCard } from '../components/ProductCard';
+import { getErrorMessage } from '../lib/api';
+import { fetchProducts } from '../lib/products';
 import { Button } from '../components/ui/Button';
 export function SearchResults() {
   const [searchParams] = useSearchParams();
   const query = searchParams.get('q') || '';
-  const results = mockProducts.filter(
-    (p) =>
-    p.name.toLowerCase().includes(query.toLowerCase()) ||
-    p.brand.toLowerCase().includes(query.toLowerCase()) ||
-    p.category.toLowerCase().includes(query.toLowerCase())
-  );
+  const [results, setResults] = useState<Product[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    let isCancelled = false;
+    setIsLoading(true);
+
+    const path = query
+      ? `/api/products?q=${encodeURIComponent(query)}`
+      : '/api/products';
+
+    fetchProducts(path)
+      .then((response) => {
+        if (!isCancelled) {
+          setResults(response);
+        }
+      })
+      .catch((error) => {
+        if (!isCancelled) {
+          setResults([]);
+          console.error(getErrorMessage(error));
+        }
+      })
+      .finally(() => {
+        if (!isCancelled) {
+          setIsLoading(false);
+        }
+      });
+
+    return () => {
+      isCancelled = true;
+    };
+  }, [query]);
+
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
       <div className="mb-8">
@@ -22,7 +53,11 @@ export function SearchResults() {
         </p>
       </div>
 
-      {results.length > 0 ?
+      {isLoading ?
+      <div className="text-center py-24 bg-surface border border-subtle/30 rounded-xl">
+          <p className="text-body">Loading results...</p>
+        </div> :
+      results.length > 0 ?
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
           {results.map((product) =>
         <ProductCard key={product.id} product={product} />

@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import {
@@ -10,32 +10,73 @@ import {
   ArrowLeft,
 } from 'lucide-react';
 import { toast } from 'sonner';
-import { mockProducts } from '../data/mock';
+import type { Product } from '../types';
+import { useCart } from '../contexts/CartContext';
 import { useWishlist } from '../contexts/WishlistContext';
-import { getProductRatingMeta, normalizeProduct } from '../utils/product';
+import { getErrorMessage } from '../lib/api';
+import { fetchProductBySlug } from '../lib/products';
+import { getProductRatingMeta } from '../utils/product';
 import { Button } from '../components/ui/Button';
 import { Badge } from '../components/ui/Badge';
 
 export function ProductDetails() {
   const { slug } = useParams<{ slug: string }>();
-  const selectedProduct =
-    mockProducts.find((item) => item.slug === slug) ?? mockProducts[0];
-
-  if (!selectedProduct) {
-    return <div className="p-20 text-center text-primary">Product not found</div>;
-  }
-
-  const product = normalizeProduct(selectedProduct);
+  const [product, setProduct] = useState<Product | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const { addToCart, isMutating: isCartMutating } = useCart();
   const { isFavorite, isMutating, toggleWishlist } = useWishlist();
-  const { ratingLabel, reviewsCount } = getProductRatingMeta(product);
-  const favorite = isFavorite(product.id);
-  const wishlistPending = isMutating(product.id);
-
   const [quantity, setQuantity] = useState(1);
   const [activeImage, setActiveImage] = useState(0);
 
-  const handleAddToCart = () => {
-    toast.success(`Added ${quantity} ${product.name} to cart`);
+  useEffect(() => {
+    if (!slug) {
+      setProduct(null);
+      setIsLoading(false);
+      return;
+    }
+
+    let isCancelled = false;
+    setIsLoading(true);
+
+    fetchProductBySlug(slug)
+      .then((nextProduct) => {
+        if (!isCancelled) {
+          setProduct(nextProduct);
+          setActiveImage(0);
+        }
+      })
+      .catch((error) => {
+        if (!isCancelled) {
+          setProduct(null);
+          console.error(getErrorMessage(error));
+        }
+      })
+      .finally(() => {
+        if (!isCancelled) {
+          setIsLoading(false);
+        }
+      });
+
+    return () => {
+      isCancelled = true;
+    };
+  }, [slug]);
+
+  if (isLoading) {
+    return <div className="p-20 text-center text-primary">Loading product...</div>;
+  }
+
+  if (!product) {
+    return <div className="p-20 text-center text-primary">Product not found</div>;
+  }
+
+  const { rating, ratingLabel, reviewsCount } = getProductRatingMeta(product);
+  const favorite = isFavorite(product.id);
+  const cartPending = isCartMutating(product.id);
+  const wishlistPending = isMutating(product.id);
+
+  const handleAddToCart = async () => {
+    await addToCart(product, quantity);
   };
 
   const handleBuyNow = () => {
@@ -73,7 +114,7 @@ export function ProductDetails() {
             )}
 
             <img
-              src={product.images[activeImage]}
+              src={product.images[activeImage] ?? product.images[0] ?? ''}
               alt={product.name}
               className="w-full h-full object-cover"
             />
@@ -119,7 +160,7 @@ export function ProductDetails() {
                 <Star
                   key={i}
                   className={`w-5 h-5 ${
-                    i < Math.floor(product.rating)
+                    i < Math.floor(rating)
                       ? 'fill-accent-gold text-accent-gold'
                       : 'text-subtle'
                   }`}
@@ -207,6 +248,7 @@ export function ProductDetails() {
                 className="flex-1"
                 leftIcon={<ShoppingCart className="w-5 h-5" />}
                 onClick={handleAddToCart}
+                disabled={cartPending}
               >
                 Add to Cart
               </Button>

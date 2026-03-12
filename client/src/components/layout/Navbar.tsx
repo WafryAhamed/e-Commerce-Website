@@ -1,16 +1,16 @@
 import { useEffect, useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ShoppingCart, User, Search, Menu, X, Laptop } from 'lucide-react';
+import { ShoppingCart, User, Search, Menu, X, Laptop, Heart } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
+import { useCart } from '../../contexts/CartContext';
 import { Button } from '../ui/Button';
 export function Navbar() {
   const [isScrolled, setIsScrolled] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const location = useLocation();
   const { isAuthenticated } = useAuth();
-  // Mock cart count
-  const cartCount = 2;
+  const { cartCount } = useCart();
   useEffect(() => {
     const handleScroll = () => {
       setIsScrolled(window.scrollY > 20);
@@ -82,6 +82,12 @@ export function Navbar() {
             <Link to={isAuthenticated ? "/account" : "/auth"}>
               <Button variant="ghost" size="icon" aria-label="Account">
                 <User className="w-5 h-5" />
+              </Button>
+            </Link>
+
+            <Link to="/wishlist">
+              <Button variant="ghost" size="icon" aria-label="Wishlist">
+                <Heart className="w-5 h-5" />
               </Button>
             </Link>
 

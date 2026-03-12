@@ -2,17 +2,26 @@ import { Link } from 'react-router-dom';
 import { Heart, ShoppingCart, Trash2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { useAuth } from '../contexts/AuthContext';
+import { useCart } from '../contexts/CartContext';
 import { useWishlist } from '../contexts/WishlistContext';
 import { Button } from '../components/ui/Button';
 import { Card } from '../components/ui/Card';
 
 export function Wishlist() {
   const { isAuthenticated } = useAuth();
+  const { addToCart, isMutating: isCartMutating } = useCart();
   const { wishlistItems, isLoading, isMutating, removeFromWishlist } =
     useWishlist();
 
-  const handleAddToCart = (name: string) => {
-    toast.success(`Added ${name} to cart`);
+  const handleAddToCart = async (productId: string) => {
+    const product = wishlistItems.find((wishlistProduct) => wishlistProduct.id === productId);
+
+    if (!product) {
+      toast.error('Product not found.');
+      return;
+    }
+
+    await addToCart(product);
   };
 
   const handleRemove = async (productId: string) => {
@@ -93,7 +102,7 @@ export function Wishlist() {
                 </button>
 
                 <img
-                  src={product.images[0]}
+                  src={product.images[0] ?? ''}
                   alt={product.name}
                   className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
                 />
@@ -115,7 +124,8 @@ export function Wishlist() {
                   <Button
                     size="icon"
                     variant="secondary"
-                    onClick={() => handleAddToCart(product.name)}
+                    onClick={() => handleAddToCart(product.id)}
+                    disabled={isCartMutating(product.id)}
                     className="rounded-full w-10 h-10"
                   >
                     <ShoppingCart className="w-4 h-4" />

@@ -105,7 +105,7 @@ export function WishlistProvider({ children }: { children: ReactNode }) {
   const toggleWishlist = useCallback(
     async (product: Product) => {
       if (!token || !isAuthenticated) {
-        toast('Sign in to save items to your wishlist.');
+        toast('signin to add to wishlist');
         return false;
       }
 

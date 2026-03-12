@@ -270,7 +270,7 @@ export function Home() {
           </motion.div>
         </section>
 
-        <BestDeals />
+        <BestDeals products={products} />
 
         <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full">
           <div className="flex items-end justify-between mb-10">

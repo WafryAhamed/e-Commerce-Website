@@ -1,8 +1,8 @@
 import { useEffect, useState, type MouseEvent } from 'react';
 import { Link } from 'react-router-dom';
 import { ShoppingCart, Star, Heart } from 'lucide-react';
-import { toast } from 'sonner';
 import type { Product } from '../types';
+import { useCart } from '../contexts/CartContext';
 import { useWishlist } from '../contexts/WishlistContext';
 import { getProductRatingMeta } from '../utils/product';
 import { Card } from './ui/Card';
@@ -14,23 +14,25 @@ interface ProductCardProps {
 }
 
 export function ProductCard({ product }: ProductCardProps) {
+  const { addToCart, isMutating: isCartMutating } = useCart();
   const { isFavorite, isMutating, toggleWishlist } = useWishlist();
-  const { ratingLabel, reviewsCount } = getProductRatingMeta(product);
+  const { rating, ratingLabel, reviewsCount } = getProductRatingMeta(product);
 
   const imageSources = product.images.filter(Boolean);
   const [activeImageIndex, setActiveImageIndex] = useState(0);
 
   const favorite = isFavorite(product.id);
+  const cartPending = isCartMutating(product.id);
   const wishlistPending = isMutating(product.id);
 
   useEffect(() => {
     setActiveImageIndex(0);
   }, [product.id]);
 
-  const handleAddToCart = (e: MouseEvent<HTMLButtonElement>) => {
+  const handleAddToCart = async (e: MouseEvent<HTMLButtonElement>) => {
     e.preventDefault();
     e.stopPropagation();
-    toast.success(`${product.name} added to cart`);
+    await addToCart(product);
   };
 
   const handleWishlist = async (e: MouseEvent<HTMLButtonElement>) => {
@@ -47,23 +49,9 @@ export function ProductCard({ product }: ProductCardProps) {
           {product.featured && <Badge variant="gold">Featured</Badge>}
         </div>
 
-        <button
-          type="button"
-          onClick={handleWishlist}
-          disabled={wishlistPending}
-          className="absolute top-3 right-3 z-10 p-2 rounded-full bg-surface/80 backdrop-blur text-muted hover:text-status-error hover:bg-surface transition-colors disabled:cursor-not-allowed disabled:opacity-70"
-          aria-label={favorite ? 'Remove from wishlist' : 'Add to wishlist'}
-        >
-          <Heart
-            className={`w-4 h-4 transition-colors ${
-              favorite ? 'fill-status-error text-status-error' : ''
-            }`}
-          />
-        </button>
-
         <div className="aspect-[4/3] overflow-hidden bg-elevated">
           <img
-            src={imageSources[activeImageIndex] ?? product.images[0]}
+            src={imageSources[activeImageIndex] ?? imageSources[0] ?? ''}
             alt={product.name}
             onError={() => {
               setActiveImageIndex((currentIndex) =>
@@ -86,7 +74,11 @@ export function ProductCard({ product }: ProductCardProps) {
           </h3>
 
           <div className="flex items-center gap-1 mb-4">
-            <Star className="w-4 h-4 fill-accent-gold text-accent-gold" />
+            <Star
+              className={`w-4 h-4 ${
+                rating > 0 ? 'fill-accent-gold text-accent-gold' : 'text-subtle'
+              }`}
+            />
             <span className="text-sm font-medium text-primary">{ratingLabel}</span>
             <span className="text-xs text-muted">({reviewsCount})</span>
           </div>
@@ -109,14 +101,32 @@ export function ProductCard({ product }: ProductCardProps) {
               )}
             </div>
 
-            <Button
-              size="icon"
-              variant="secondary"
-              onClick={handleAddToCart}
-              className="rounded-full w-10 h-10 group-hover:bg-accent-gold group-hover:text-background group-hover:border-accent-gold transition-all"
-            >
-              <ShoppingCart className="w-4 h-4" />
-            </Button>
+            <div className="flex items-center gap-2">
+              <Button
+                size="icon"
+                variant="secondary"
+                onClick={handleWishlist}
+                disabled={wishlistPending}
+                className="rounded-full w-10 h-10"
+                aria-label={favorite ? 'Remove from wishlist' : 'Add to wishlist'}
+              >
+                <Heart
+                  className={`w-4 h-4 transition-colors ${
+                    favorite ? 'fill-status-error text-status-error' : ''
+                  }`}
+                />
+              </Button>
+
+              <Button
+                size="icon"
+                variant="secondary"
+                onClick={handleAddToCart}
+                disabled={cartPending}
+                className="rounded-full w-10 h-10 group-hover:bg-accent-gold group-hover:text-background group-hover:border-accent-gold transition-all"
+              >
+                <ShoppingCart className="w-4 h-4" />
+              </Button>
+            </div>
           </div>
         </div>
       </Card>
