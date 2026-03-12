@@ -1,9 +1,8 @@
-import React, { useState } from 'react';
-import { Plus, Search, Edit, Trash2, MoreVertical, Filter } from 'lucide-react';
+import { useState } from 'react';
+import { Plus, Search, Edit, Trash2, Filter } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { mockProducts } from '../../data/mock';
 import { Button } from '../../components/ui/Button';
-import { Input } from '../../components/ui/Input';
 import { Badge } from '../../components/ui/Badge';
 import { Card } from '../../components/ui/Card';
 export function AdminProductsPage() {

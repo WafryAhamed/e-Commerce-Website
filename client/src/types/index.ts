@@ -26,7 +26,10 @@ export interface CartItem {
 export interface User {
   id: string;
   name: string;
+  firstName: string;
+  lastName: string;
   email: string;
+  phone: string;
   role: 'user' | 'admin';
   avatar?: string;
 }

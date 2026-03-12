@@ -1,12 +1,12 @@
-import React, { forwardRef } from 'react';
+import { forwardRef, type ReactNode } from 'react';
 import { motion, HTMLMotionProps } from 'framer-motion';
 import { Loader2 } from 'lucide-react';
 interface ButtonProps extends Omit<HTMLMotionProps<'button'>, 'ref'> {
   variant?: 'primary' | 'secondary' | 'outline' | 'ghost' | 'danger';
   size?: 'sm' | 'md' | 'lg' | 'icon';
   isLoading?: boolean;
-  leftIcon?: React.ReactNode;
-  rightIcon?: React.ReactNode;
+  leftIcon?: ReactNode;
+  rightIcon?: ReactNode;
 }
 export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
   (
@@ -23,6 +23,7 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
   },
   ref) =>
   {
+    const buttonChildren = children as ReactNode;
     const baseStyles =
     'inline-flex items-center justify-center rounded-lg font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-background disabled:opacity-50 disabled:cursor-not-allowed';
     const variants = {
@@ -55,7 +56,7 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
 
         {isLoading && <Loader2 className="w-4 h-4 animate-spin" />}
         {!isLoading && leftIcon}
-        {children}
+        {buttonChildren}
         {!isLoading && rightIcon}
       </motion.button>);
 

@@ -14,9 +14,9 @@ export const mockProducts: Product[] = [
   shortDescription: 'The most advanced Mac ever built for pros.',
   fullDescription:
   'Experience mind-blowing performance with the M3 Max chip. Featuring a stunning Liquid Retina XDR display, all-day battery life, and an array of pro ports.',
-  images: [
-  'https://images.unsplash.com/photo-1517336714731-489689fd1ca8?auto=format&fit=crop&q=80&w=1000',
-  'https://images.unsplash.com/photo-1611186871348-b1ce696e52c9?auto=format&fit=crop&q=80&w=1000'],
+ images: [
+  '/laptopimg/MacBook Pro 16 M3 Max.jpeg'],
+  
 
   specifications: {
     Processor: 'Apple M3 Max',
@@ -45,9 +45,8 @@ export const mockProducts: Product[] = [
   shortDescription: 'Stunning OLED display meets powerful performance.',
   fullDescription:
   'The XPS 15 is the perfect balance of power and portability. Featuring a gorgeous 3.5K OLED touch display and 13th Gen Intel Core processors.',
-  images: [
-  'https://images.unsplash.com/photo-1593642632823-8f785ba67e45?auto=format&fit=crop&q=80&w=1000',
-  'https://images.unsplash.com/photo-1603302576837-37561b2e2302?auto=format&fit=crop&q=80&w=1000'],
+images: [
+  '/laptopimg/Dell XPS 15 OLED.jpeg'],
 
   specifications: {
     Processor: 'Intel Core i9-13900H',
@@ -75,9 +74,8 @@ export const mockProducts: Product[] = [
   shortDescription: 'The ultimate business ultrabook.',
   fullDescription:
   'Ultralight and ultra-powerful, the ThinkPad X1 Carbon Gen 11 delivers premium performance, legendary keyboard comfort, and enterprise-grade security.',
-  images: [
-  'https://images.unsplash.com/photo-1588872657578-7df560d6c40b?auto=format&fit=crop&q=80&w=1000',
-  'https://images.unsplash.com/photo-1629131726692-1accd0c53ce0?auto=format&fit=crop&q=80&w=1000'],
+ images: [
+  '/laptopimg/ThinkPad X1 Carbon Gen 11.jpeg'],
 
   specifications: {
     Processor: 'Intel Core i7-1355U',
@@ -106,9 +104,8 @@ export const mockProducts: Product[] = [
   shortDescription: 'Dominate the game with cutting-edge power.',
   fullDescription:
   'Built for gamers and creators, the ROG Strix G16 features a blazing-fast 240Hz display, advanced cooling, and top-tier NVIDIA graphics.',
-  images: [
-  'https://images.unsplash.com/photo-1600861194942-f883de0dfe96?auto=format&fit=crop&q=80&w=1000',
-  'https://images.unsplash.com/photo-1593640408182-31c70c8268f5?auto=format&fit=crop&q=80&w=1000'],
+ images: [
+  '/laptopimg/ASUS ROG Strix G1.jpeg'],
 
   specifications: {
     Processor: 'Intel Core i9-13980HX',

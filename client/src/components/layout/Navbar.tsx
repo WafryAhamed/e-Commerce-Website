@@ -1,13 +1,14 @@
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ShoppingCart, User, Search, Menu, X, Laptop } from 'lucide-react';
+import { useAuth } from '../../contexts/AuthContext';
 import { Button } from '../ui/Button';
-import { Badge } from '../ui/Badge';
 export function Navbar() {
   const [isScrolled, setIsScrolled] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const location = useLocation();
+  const { isAuthenticated } = useAuth();
   // Mock cart count
   const cartCount = 2;
   useEffect(() => {
@@ -78,7 +79,7 @@ export function Navbar() {
               <Search className="w-5 h-5" />
             </Button>
 
-            <Link to="/auth">
+            <Link to={isAuthenticated ? "/account" : "/auth"}>
               <Button variant="ghost" size="icon" aria-label="Account">
                 <User className="w-5 h-5" />
               </Button>

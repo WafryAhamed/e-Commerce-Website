@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { Search, Filter, Eye, Download } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { Card } from '../../components/ui/Card';
