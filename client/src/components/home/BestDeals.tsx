@@ -1,11 +1,20 @@
-import React from 'react';
+import { useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { ArrowRight } from 'lucide-react';
-import { mockProducts } from '../../data/mock';
+import type { Product } from '../../types';
 import { ProductCard } from '../ProductCard';
-export function BestDeals() {
-  const deals = mockProducts.filter((p) => p.discountPrice).slice(0, 4);
+
+interface BestDealsProps {
+  products: Product[];
+}
+
+export function BestDeals({ products }: BestDealsProps) {
+  const deals = useMemo(
+    () => products.filter((product) => product.discountPrice).slice(0, 4),
+    [products]
+  );
+
   return (
     <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full">
       <div className="flex items-end justify-between mb-10">

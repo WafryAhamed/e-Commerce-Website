@@ -10,13 +10,22 @@ const generateToken = (id: string) => {
   });
 };
 
-// ── Register ─────────────────────────────────────────────────────
+// Register
 export const registerUser = async (req: Request, res: Response) => {
   try {
-    const { name, email, password } = req.body;
+    const { firstName, lastName, email, phone, password } = req.body;
 
-    if (!name || !email || !password) {
-      res.status(400).json({ message: 'Please provide name, email, and password' });
+    if (!firstName || !lastName || !email || !phone || !password) {
+      res.status(400).json({
+        message: 'Please provide first name, last name, email, phone, and password',
+      });
+      return;
+    }
+
+    if (!String(phone).startsWith('+94')) {
+      res.status(400).json({
+        message: 'Phone number must start with +94',
+      });
       return;
     }
 
@@ -29,19 +38,30 @@ export const registerUser = async (req: Request, res: Response) => {
 
     const salt = await bcrypt.genSalt(10);
     const hashedPassword = await bcrypt.hash(password, salt);
+    const cleanFirstName = String(firstName).trim();
+    const cleanLastName = String(lastName).trim();
+    const name = `${cleanFirstName} ${cleanLastName}`.trim();
 
     const user = await User.create({
       name,
-      email,
+      firstName: cleanFirstName,
+      lastName: cleanLastName,
+      email: String(email).trim(),
+      phone: String(phone).trim(),
       password: hashedPassword,
+      avatar: '',
     });
 
     if (user) {
       res.status(201).json({
         id: user._id,
         name: user.name,
+        firstName: user.firstName,
+        lastName: user.lastName,
         email: user.email,
+        phone: user.phone,
         role: user.role,
+        avatar: user.avatar || '',
         token: generateToken(user._id.toString()),
       });
     } else {
@@ -52,7 +72,7 @@ export const registerUser = async (req: Request, res: Response) => {
   }
 };
 
-// ── Login ────────────────────────────────────────────────────────
+// Login
 export const loginUser = async (req: Request, res: Response) => {
   try {
     const { email, password } = req.body;
@@ -68,8 +88,12 @@ export const loginUser = async (req: Request, res: Response) => {
       res.json({
         id: user._id,
         name: user.name,
+        firstName: user.firstName,
+        lastName: user.lastName,
         email: user.email,
+        phone: user.phone,
         role: user.role,
+        avatar: user.avatar || '',
         token: generateToken(user._id.toString()),
       });
     } else {
@@ -80,13 +104,14 @@ export const loginUser = async (req: Request, res: Response) => {
   }
 };
 
-// ── Get Me ───────────────────────────────────────────────────────
+// Get current user
 export const getMe = async (req: AuthRequest, res: Response) => {
   try {
     if (!req.user) {
       res.status(401).json({ message: 'User not found' });
       return;
     }
+
     const user = await User.findById(req.user._id).select('-password');
     res.json(user);
   } catch (error: any) {
@@ -94,7 +119,7 @@ export const getMe = async (req: AuthRequest, res: Response) => {
   }
 };
 
-// ── Update Profile ───────────────────────────────────────────────
+// Update profile with password confirmation
 export const updateProfile = async (req: AuthRequest, res: Response) => {
   try {
     if (!req.user) {
@@ -102,28 +127,125 @@ export const updateProfile = async (req: AuthRequest, res: Response) => {
       return;
     }
 
+    const { firstName, lastName, email, phone, password } = req.body;
+
+    if (!firstName || !lastName || !email || !phone || !password) {
+      res.status(400).json({
+        message: 'Please provide first name, last name, email, phone, and current password',
+      });
+      return;
+    }
+
+    if (!String(phone).startsWith('+94')) {
+      res.status(400).json({
+        message: 'Phone number must start with +94',
+      });
+      return;
+    }
+
     const user = await User.findById(req.user._id);
-    if (!user) {
+
+    if (!user || !user.password) {
       res.status(404).json({ message: 'User not found' });
       return;
     }
 
-    user.name = req.body.name || user.name;
-    user.email = req.body.email || user.email;
+    const isMatch = await bcrypt.compare(password, user.password);
+
+    if (!isMatch) {
+      res.status(400).json({ message: 'Current password is incorrect' });
+      return;
+    }
+
+    const cleanEmail = String(email).trim();
+
+    const existingUserWithEmail = await User.findOne({
+      email: cleanEmail,
+      _id: { $ne: user._id }
+    });
+
+    if (existingUserWithEmail) {
+      res.status(400).json({ message: 'Email is already in use' });
+      return;
+    }
+
+    const cleanFirstName = String(firstName).trim();
+    const cleanLastName = String(lastName).trim();
+
+    user.firstName = cleanFirstName;
+    user.lastName = cleanLastName;
+    user.name = `${cleanFirstName} ${cleanLastName}`.trim();
+    user.email = cleanEmail;
+    user.phone = String(phone).trim();
 
     const updatedUser = await user.save();
+
     res.json({
       id: updatedUser._id,
       name: updatedUser.name,
+      firstName: updatedUser.firstName,
+      lastName: updatedUser.lastName,
       email: updatedUser.email,
+      phone: updatedUser.phone,
       role: updatedUser.role,
+      avatar: updatedUser.avatar || '',
     });
   } catch (error: any) {
     res.status(500).json({ message: error.message });
   }
 };
 
-// ── Change Password ──────────────────────────────────────────────
+// Update or remove avatar
+export const updateAvatar = async (req: AuthRequest, res: Response) => {
+  try {
+    if (!req.user) {
+      res.status(401).json({ message: 'User not found' });
+      return;
+    }
+
+    const { avatar, removeAvatar } = req.body;
+
+    const user = await User.findById(req.user._id);
+
+    if (!user) {
+      res.status(404).json({ message: 'User not found' });
+      return;
+    }
+
+    if (removeAvatar) {
+      user.avatar = '';
+    } else {
+      if (!avatar || typeof avatar !== 'string') {
+        res.status(400).json({ message: 'Please provide a valid avatar image' });
+        return;
+      }
+
+      if (!avatar.startsWith('data:image/')) {
+        res.status(400).json({ message: 'Invalid image format' });
+        return;
+      }
+
+      user.avatar = avatar;
+    }
+
+    const updatedUser = await user.save();
+
+    res.json({
+      id: updatedUser._id,
+      name: updatedUser.name,
+      firstName: updatedUser.firstName,
+      lastName: updatedUser.lastName,
+      email: updatedUser.email,
+      phone: updatedUser.phone,
+      role: updatedUser.role,
+      avatar: updatedUser.avatar || '',
+    });
+  } catch (error: any) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+// Change password
 export const changePassword = async (req: AuthRequest, res: Response) => {
   try {
     if (!req.user) {

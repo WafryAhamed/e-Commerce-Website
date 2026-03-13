@@ -54,14 +54,20 @@ const importData = async () => {
 
     const createdUsers = await User.create([
       {
+        firstName: 'Admin',
+        lastName: 'User',
         name: 'Admin User',
         email: 'admin@example.com',
+        phone: '+94770000001',
         password: hashedPassword,
         role: 'admin',
       },
       {
+        firstName: 'John',
+        lastName: 'Doe',
         name: 'John Doe',
         email: 'john@example.com',
+        phone: '+94770000002',
         password: await bcrypt.hash('user123', salt),
         role: 'user',
       }

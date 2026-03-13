@@ -1,0 +1,20 @@
+"use strict";
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
+Object.defineProperty(exports, "__esModule", { value: true });
+const express_1 = __importDefault(require("express"));
+const admin_controller_1 = require("../controllers/admin.controller");
+const sellerAuth_middleware_1 = require("../middlewares/sellerAuth.middleware");
+const router = express_1.default.Router();
+router.get('/stats', sellerAuth_middleware_1.sellerProtect, admin_controller_1.getStats);
+router.get('/products', sellerAuth_middleware_1.sellerProtect, admin_controller_1.getProducts);
+router.get('/users', sellerAuth_middleware_1.sellerProtect, admin_controller_1.getUsers);
+router.put('/users/:id', sellerAuth_middleware_1.sellerProtect, admin_controller_1.updateUser);
+router.get('/orders', sellerAuth_middleware_1.sellerProtect, admin_controller_1.getOrders);
+router.get('/orders/:id', sellerAuth_middleware_1.sellerProtect, admin_controller_1.getOrderDetails);
+router.put('/orders/:id', sellerAuth_middleware_1.sellerProtect, admin_controller_1.updateOrderStatus);
+router.post('/products', sellerAuth_middleware_1.sellerProtect, admin_controller_1.createProduct);
+router.put('/products/:id', sellerAuth_middleware_1.sellerProtect, admin_controller_1.updateProduct);
+router.delete('/products/:id', sellerAuth_middleware_1.sellerProtect, admin_controller_1.deleteProduct);
+exports.default = router;

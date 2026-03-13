@@ -1,19 +1,10 @@
-import React from 'react';
 import { Link } from 'react-router-dom';
 import { Trash2, ArrowRight, ShoppingBag } from 'lucide-react';
 import { Button } from '../components/ui/Button';
-import { mockProducts } from '../data/mock';
+import { useCart } from '../contexts/CartContext';
 export function Cart() {
-  // Mock cart data
-  const cartItems = [
-  {
-    product: mockProducts[0],
-    quantity: 1
-  },
-  {
-    product: mockProducts[2],
-    quantity: 2
-  }];
+  const { cartItems, isLoading, isMutating, removeFromCart, updateCartItem } =
+    useCart();
 
   const subtotal = cartItems.reduce((acc, item) => {
     const price = item.product.discountPrice || item.product.price;
@@ -22,6 +13,13 @@ export function Cart() {
   const shipping = subtotal > 500 ? 0 : 25;
   const tax = subtotal * 0.08; // 8% tax
   const total = subtotal + shipping + tax;
+  if (isLoading) {
+    return (
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-24 text-center">
+        <p className="text-body">Loading cart...</p>
+      </div>);
+
+  }
   if (cartItems.length === 0) {
     return (
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-24 text-center">
@@ -58,6 +56,7 @@ export function Cart() {
             <div className="divide-y divide-subtle/20">
               {cartItems.map((item) => {
                 const price = item.product.discountPrice || item.product.price;
+                const isPending = isMutating(item.product.id);
                 return (
                   <div
                     key={item.product.id}
@@ -67,7 +66,7 @@ export function Cart() {
                     <div className="col-span-6 flex items-center gap-4 w-full">
                       <div className="w-20 h-20 rounded-lg bg-elevated overflow-hidden flex-shrink-0">
                         <img
-                          src={item.product.images[0]}
+                          src={item.product.images[0] ?? ''}
                           alt={item.product.name}
                           className="w-full h-full object-cover" />
 
@@ -98,13 +97,23 @@ export function Cart() {
                     {/* Quantity */}
                     <div className="col-span-2 flex justify-center w-full sm:w-auto mt-4 sm:mt-0">
                       <div className="flex items-center border border-subtle/50 rounded-lg bg-background">
-                        <button className="px-3 py-1 text-muted hover:text-primary">
+                        <button
+                          onClick={() =>
+                            updateCartItem(item.product.id, item.quantity - 1)
+                          }
+                          disabled={isPending}
+                          className="px-3 py-1 text-muted hover:text-primary disabled:cursor-not-allowed disabled:opacity-70">
                           -
                         </button>
                         <span className="w-8 text-center text-primary text-sm font-medium">
                           {item.quantity}
                         </span>
-                        <button className="px-3 py-1 text-muted hover:text-primary">
+                        <button
+                          onClick={() =>
+                            updateCartItem(item.product.id, item.quantity + 1)
+                          }
+                          disabled={isPending}
+                          className="px-3 py-1 text-muted hover:text-primary disabled:cursor-not-allowed disabled:opacity-70">
                           +
                         </button>
                       </div>
@@ -119,7 +128,10 @@ export function Cart() {
                         <span className="text-primary font-bold">
                           ${(price * item.quantity).toLocaleString()}
                         </span>
-                        <button className="text-muted hover:text-status-error transition-colors p-2">
+                        <button
+                          onClick={() => removeFromCart(item.product.id)}
+                          disabled={isPending}
+                          className="text-muted hover:text-status-error transition-colors p-2 disabled:cursor-not-allowed disabled:opacity-70">
                           <Trash2 className="w-4 h-4" />
                         </button>
                       </div>

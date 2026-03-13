@@ -1,5 +1,6 @@
 export interface Product {
   id: string;
+  sellerId?: string;
   name: string;
   slug: string;
   sku: string;
@@ -26,9 +27,43 @@ export interface CartItem {
 export interface User {
   id: string;
   name: string;
+  firstName: string;
+  lastName: string;
   email: string;
+  phone: string;
   role: 'user' | 'admin';
   avatar?: string;
+}
+
+export interface Seller {
+  id: string;
+  name: string;
+  businessName: string;
+  activeBankAccount: string;
+  profileImage?: string;
+  validEmail: string;
+  mobileNumber: string;
+  pickupAddress: string;
+  username: string;
+  status: 'active' | 'blocked';
+  role: 'seller';
+}
+
+export interface SellerMessage {
+  id: string;
+  message: string;
+  isRead: boolean;
+  createdAt: string;
+  customer: {
+    id: string;
+    name: string;
+    email: string;
+  };
+  product: {
+    id: string;
+    name: string;
+    slug: string;
+  } | null;
 }
 
 export interface Order {

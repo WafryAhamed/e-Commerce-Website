@@ -1,6 +1,8 @@
-import mongoose, { Schema, Document } from 'mongoose';
+import mongoose, { Schema, type Document } from 'mongoose';
 
 export interface IProduct extends Document {
+  id?: string;
+  seller?: mongoose.Types.ObjectId;
   name: string;
   slug: string;
   sku: string;
@@ -21,14 +23,19 @@ export interface IProduct extends Document {
   updatedAt: Date;
 }
 
-const ProductSchema: Schema = new Schema(
+const ProductSchema = new Schema<IProduct>(
   {
     id: { type: String, unique: true, sparse: true },
+    seller: { type: Schema.Types.ObjectId, ref: 'Seller' },
     name: { type: String, required: true },
     slug: { type: String, required: true, unique: true },
     sku: { type: String, required: true },
     brand: { type: String, required: true },
-    category: { type: String, enum: ['Laptops', 'Accessories'], required: true },
+    category: {
+      type: String,
+      enum: ['Laptops', 'Accessories'],
+      required: true,
+    },
     subcategory: { type: String },
     price: { type: Number, required: true },
     discountPrice: { type: Number },
@@ -45,12 +52,15 @@ const ProductSchema: Schema = new Schema(
     timestamps: true,
     toJSON: {
       virtuals: true,
-      transform: (_doc: any, ret: any) => {
-        // If the document has a custom 'id' field (from seed data), use it
-        // Otherwise fall back to _id.toString()
+      transform: (_doc, ret: any) => {
         if (!ret.id || ret.id === ret._id?.toString()) {
           ret.id = ret._id?.toString();
         }
+
+        if (ret.seller && typeof ret.seller?.toString === 'function') {
+          ret.sellerId = ret.seller.toString();
+        }
+
         delete ret._id;
         delete ret.__v;
         return ret;
